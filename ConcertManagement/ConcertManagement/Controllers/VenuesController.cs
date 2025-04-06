@@ -17,7 +17,7 @@ namespace ConcertManagement.Api.Controllers
             _concertService = concertService;
         }
 
-        [HttpGet("")]
+        [HttpGet("", Name = "GetVenues")]
         public async Task<IActionResult> GetVenues()
         {
             _logger.LogInformation("Fetching all venues");
@@ -25,7 +25,9 @@ namespace ConcertManagement.Api.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetVenueById")]
+        [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetVenueById(int id)
         {
             _logger.LogInformation("Fetching venues for venueId {id}", id);
@@ -34,6 +36,8 @@ namespace ConcertManagement.Api.Controllers
         }
 
         [HttpPost(Name = "AddVenue")]
+        [ProducesResponseType(typeof(EventDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> AddVenue([FromBody] VenueDto item)
         {
             if (item == null || !ModelState.IsValid)
@@ -49,6 +53,9 @@ namespace ConcertManagement.Api.Controllers
         }
 
         [HttpPut("{id}", Name = "UpdateVenue")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateVenue(int id, [FromBody] VenueDto item)
         {
             if (item == null || id != item.Id || !ModelState.IsValid)
