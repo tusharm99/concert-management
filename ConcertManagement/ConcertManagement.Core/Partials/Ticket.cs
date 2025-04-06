@@ -1,6 +1,4 @@
-﻿using ConcertManagement.Core.Entities;
-
-namespace ConcertManagement.Core.Partials
+﻿namespace ConcertManagement.Core.Entities
 {
     public partial class Ticket : EntityBase { }
 }
