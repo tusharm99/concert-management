@@ -16,9 +16,15 @@ namespace ConcertManagement.Data.Repositories
             _entities = _context.Set<T>();
         }
 
-        public async Task<T> GetByIdAsync(int id)
+        public async Task<T> GetByIdAsync(int id, params Expression<Func<T, object>>[] includes)
         {
-            return await _entities.FirstOrDefaultAsync(_ => _.Id == id);
+            IQueryable<T> query = _entities;
+
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+            return await query.FirstOrDefaultAsync(_ => _.Id == id);
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()

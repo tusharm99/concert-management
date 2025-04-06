@@ -33,9 +33,18 @@ namespace ConcertManagement.Service
             return await _eventsRepository.GetAllAsync().ConfigureAwait(false);
         }
 
-        public async Task<Event> GetEvent(int id)
+        public async Task<Event> GetEvent(int id, bool includeTicketTypes = false)
         {
-            return await _eventsRepository.GetByIdAsync(id).ConfigureAwait(false);
+            if (includeTicketTypes)
+            {
+                return await _eventsRepository
+                    .GetByIdAsync(id, e => e.TicketTypes)
+                    .ConfigureAwait(false);
+            }
+
+            return await _eventsRepository
+                .GetByIdAsync(id)
+                .ConfigureAwait(false);
         }
 
         public async Task<IEnumerable<Event>> GetEventsByVenue(int venueId)
@@ -129,6 +138,11 @@ namespace ConcertManagement.Service
             }
 
             await _venuesRepository.UpdateAsync(existingVenue).ConfigureAwait(false);
+        }
+
+        public Task AddEventTicketType(int eventId, TicketType item)
+        {
+            throw new NotImplementedException();
         }
         #endregion
     }

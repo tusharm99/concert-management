@@ -29,7 +29,8 @@ namespace ConcertManagement.Infrastructure
 
             // Event -> EventDto
             CreateMap<Event, EventDto>()
-             .ForMember(dest => dest.VenueName, opt => opt.MapFrom(src => src.Venue.Name));
+             .ForMember(dest => dest.VenueName, opt => opt.MapFrom(src => src.Venue.Name))
+             .ForMember(dest => dest.TicketTypes, opt => opt.MapFrom(src => src.TicketTypes));
 
             CreateMap<VenueDto, Venue>()
             .AfterMap((s, d) =>

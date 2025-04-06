@@ -7,9 +7,10 @@ namespace ConcertManagement.Service
     public interface IConcertService
     {
         Task<IEnumerable<Event>> GetEvents();
-        Task<Event> GetEvent(int id);
+        Task<Event> GetEvent(int id, bool includeTicketTypes = false);
         Task<IEnumerable<Event>> GetEventsByVenue(int venueId);
         Task<Event> CreateEvent(EventDto item);
+        Task AddEventTicketType(int eventId, TicketType item);
         Task UpdateEvent(EventDto item);
         Task<IEnumerable<Venue>> GetVenues();
         Task<Venue> GetVenue(int id);

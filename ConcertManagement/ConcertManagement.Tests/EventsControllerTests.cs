@@ -27,7 +27,7 @@ namespace ConcertManagement.Tests
         public async Task GetEventById_ValidEvent()
         {
             Event eventObj = new Event { Id = 1, Name = "Test Event" };
-            _mockService.Setup(s => s.GetEvent(eventObj.Id)).ReturnsAsync(eventObj);
+            _mockService.Setup(s => s.GetEvent(eventObj.Id, false)).ReturnsAsync(eventObj);
 
             var act = await _controller.GetEventById(1);
 
@@ -41,7 +41,7 @@ namespace ConcertManagement.Tests
         public async Task GetEventById_EventNotFound()
         {
             int eventId = 123;
-            _mockService.Setup(s => s.GetEvent(eventId)).ReturnsAsync((Event)null);
+            _mockService.Setup(s => s.GetEvent(eventId, false)).ReturnsAsync((Event)null);
 
             var act = await _controller.GetEventById(eventId);
 
@@ -101,7 +101,7 @@ namespace ConcertManagement.Tests
             var inputEvent = new EventDto { Id = 1, Name = "Updated", VenueId = 10 };
             var outputEvent = new Event { Id = 1, Name = inputEvent.Name, VenueId = inputEvent.VenueId, Venue = new Venue { Name = "Test Venue" } };
 
-            _mockService.Setup(s => s.GetEvent(1)).ReturnsAsync(outputEvent);
+            _mockService.Setup(s => s.GetEvent(1, false)).ReturnsAsync(outputEvent);
             _mockService.Setup(s => s.UpdateEvent(inputEvent)).Returns(Task.CompletedTask);
 
             var act = await _controller.UpdateEvent(1, inputEvent);
@@ -113,7 +113,7 @@ namespace ConcertManagement.Tests
         public async Task UpdateEvent_EventNotFound()
         {
             var inputEvent = new EventDto { Id = 1, Name = "Updated", VenueId = 10 };
-            _mockService.Setup(s => s.GetEvent(inputEvent.Id)).ReturnsAsync((Event)null);
+            _mockService.Setup(s => s.GetEvent(inputEvent.Id, false)).ReturnsAsync((Event)null);
 
             var result = await _controller.UpdateEvent(1, inputEvent);
 
