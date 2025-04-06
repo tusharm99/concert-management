@@ -22,13 +22,7 @@ namespace ConcertManagement.Api
                 provideroptions => provideroptions.EnableRetryOnFailure());
             });
 
-            Log.Logger = new LoggerConfiguration()
-                                .ReadFrom.Configuration(builder.Configuration)
-                                .Enrich.FromLogContext()
-                                .WriteTo.File("Logs/log.txt", rollingInterval: RollingInterval.Day)
-                                .CreateLogger();
-
-            builder.Host.UseSerilog();
+            ConfigureLogging(builder);
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -44,8 +38,18 @@ namespace ConcertManagement.Api
             builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
             var app = builder.Build();
+            
+            ConfigureMiddleware(app);
 
+            app.Run();
+        }
+
+        private static void ConfigureMiddleware(WebApplication app)
+        {
             app.UseSerilogRequestLogging(); // to log Http requests
+
+            // Global exception handling
+            app.UseExceptionHandler("/error");
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -55,13 +59,19 @@ namespace ConcertManagement.Api
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
             app.MapControllers();
+        }
 
-            app.Run();
+        private static void ConfigureLogging(WebApplicationBuilder builder)
+        {
+            Log.Logger = new LoggerConfiguration()
+                                .ReadFrom.Configuration(builder.Configuration)
+                                .Enrich.FromLogContext()
+                                .WriteTo.File("Logs/log.txt", rollingInterval: RollingInterval.Day)
+                                .CreateLogger();
+
+            builder.Host.UseSerilog();
         }
     }
 }

@@ -34,7 +34,7 @@ namespace ConcertManagement.Api.Controllers
             return Ok(events);
         }
 
-        [HttpPost(Name = "")]
+        [HttpPost(Name = "AddEvent")]
         public async Task<IActionResult> AddEvent([FromBody] EventDto item)
         {
             if (item == null || !ModelState.IsValid)
@@ -47,6 +47,28 @@ namespace ConcertManagement.Api.Controllers
 
             _logger.LogInformation("Event created with ID: {EventId}", createdEvent.Id);
             return CreatedAtAction(nameof(GetEventById), new { id = createdEvent.Id }, createdEvent);
+        }
+
+        [HttpPut("{id}", Name = "UpdateEvent")]
+        public async Task<IActionResult> UpdateEvent(int id, [FromBody] EventDto item)
+        {
+            if (item == null || id != item.Id || !ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid Event data");
+                return BadRequest(ModelState);
+            }
+
+            var existingEvent = await _concertService.GetEvent(id);
+            if (existingEvent == null)
+            {
+                _logger.LogWarning("Event not found with ID {EventId} not found", id);
+                return NotFound();
+            }
+
+            await _concertService.UpdateEvent(item);
+
+            _logger.LogInformation("Event updated with ID {EventId}", id);
+            return NoContent();
         }
     }
 }

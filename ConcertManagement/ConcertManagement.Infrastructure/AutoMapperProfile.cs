@@ -8,10 +8,6 @@ namespace ConcertManagement.Infrastructure
     {
         public AutoMapperProfile()
         {
-            //CreateMap<EventDto, Event>()
-            //.ForMember(dest => dest.Venue.Name, opt => opt.MapFrom(src => src.VenueName))
-            //.ForMember(dest => dest.Venue.Id, opt => opt.MapFrom(src => src.VenueId));
-
             // EventDto -> Event
             CreateMap<EventDto, Event>()
             .ForMember(dest => dest.Venue, opt => opt.Ignore())
@@ -34,6 +30,15 @@ namespace ConcertManagement.Infrastructure
             // Event -> EventDto
             CreateMap<Event, EventDto>()
              .ForMember(dest => dest.VenueName, opt => opt.MapFrom(src => src.Venue.Name));
+
+            CreateMap<VenueDto, Venue>()
+            .AfterMap((s, d) =>
+            {
+                if (d.CreatedDate == DateTime.MinValue) d.CreatedDate = DateTime.UtcNow;
+                if (d.UpdatedDate == DateTime.MinValue) d.UpdatedDate = DateTime.UtcNow;
+                if (string.IsNullOrWhiteSpace(d.CreatedBy)) d.CreatedBy = "admin"; // assumption for now
+                if (string.IsNullOrWhiteSpace(d.UpdatedBy)) d.UpdatedBy = "admin"; // assumption for now
+            });
 
         }
     }
