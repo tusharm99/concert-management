@@ -1,9 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35913.81 d17.13
+VisualStudioVersion = 17.13.35913.81
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConcertManagement", "ConcertManagement\ConcertManagement.csproj", "{2F67E9D3-5235-44F7-9CB0-E860217FFE3A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConcertManagement.Api", "ConcertManagement\ConcertManagement.Api.csproj", "{2F67E9D3-5235-44F7-9CB0-E860217FFE3A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConcertManagement.Core", "ConcertManagement.Core\ConcertManagement.Core.csproj", "{0E4C0106-EF5A-4779-9F3E-DEBAC63118C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConcertManagement.Data", "ConcertManagement.Data\ConcertManagement.Data.csproj", "{45072690-DD80-4B38-AE0F-648EDD7F84EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConcertManagement.Infrastructure", "ConcertManagement.Infrastructure\ConcertManagement.Infrastructure.csproj", "{9D6833DD-4A21-47A5-9D5A-F93F6D75A28F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConcertManagement.Tests", "ConcertManagement.Tests\ConcertManagement.Tests.csproj", "{432979C6-B9BD-4AF6-BE09-9B3750B8EB3A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConcertManagement.Service", "ConcertManagement.Service\ConcertManagement.Service.csproj", "{79384F01-96D0-49A9-ABE8-FC2E4CEBA5FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +25,26 @@ Global
 		{2F67E9D3-5235-44F7-9CB0-E860217FFE3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F67E9D3-5235-44F7-9CB0-E860217FFE3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F67E9D3-5235-44F7-9CB0-E860217FFE3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E4C0106-EF5A-4779-9F3E-DEBAC63118C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E4C0106-EF5A-4779-9F3E-DEBAC63118C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E4C0106-EF5A-4779-9F3E-DEBAC63118C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E4C0106-EF5A-4779-9F3E-DEBAC63118C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45072690-DD80-4B38-AE0F-648EDD7F84EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45072690-DD80-4B38-AE0F-648EDD7F84EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45072690-DD80-4B38-AE0F-648EDD7F84EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45072690-DD80-4B38-AE0F-648EDD7F84EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D6833DD-4A21-47A5-9D5A-F93F6D75A28F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D6833DD-4A21-47A5-9D5A-F93F6D75A28F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D6833DD-4A21-47A5-9D5A-F93F6D75A28F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D6833DD-4A21-47A5-9D5A-F93F6D75A28F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{432979C6-B9BD-4AF6-BE09-9B3750B8EB3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{432979C6-B9BD-4AF6-BE09-9B3750B8EB3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{432979C6-B9BD-4AF6-BE09-9B3750B8EB3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{432979C6-B9BD-4AF6-BE09-9B3750B8EB3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79384F01-96D0-49A9-ABE8-FC2E4CEBA5FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79384F01-96D0-49A9-ABE8-FC2E4CEBA5FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79384F01-96D0-49A9-ABE8-FC2E4CEBA5FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79384F01-96D0-49A9-ABE8-FC2E4CEBA5FE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
