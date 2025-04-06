@@ -39,7 +39,6 @@ namespace ConcertManagement.Infrastructure
                 if (string.IsNullOrWhiteSpace(d.CreatedBy)) d.CreatedBy = "admin"; // assumption for now
                 if (string.IsNullOrWhiteSpace(d.UpdatedBy)) d.UpdatedBy = "admin"; // assumption for now
             });
-
         }
     }
 }
