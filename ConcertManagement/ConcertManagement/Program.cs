@@ -1,6 +1,7 @@
 using ConcertManagement.Data.Entities;
 using ConcertManagement.Data.Repositories;
 using ConcertManagement.Infrastructure;
+using ConcertManagement.Infrastructure.Middleware;
 using ConcertManagement.Service;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -49,7 +50,8 @@ namespace ConcertManagement.Api
             app.UseSerilogRequestLogging(); // to log Http requests
 
             // Global exception handling
-            app.UseExceptionHandler("/error");
+            //app.UseExceptionHandler("/error");
+            app.UseMiddleware<ErrorHandlingMiddleware>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -67,8 +69,6 @@ namespace ConcertManagement.Api
         {
             Log.Logger = new LoggerConfiguration()
                                 .ReadFrom.Configuration(builder.Configuration)
-                                .Enrich.FromLogContext()
-                                .WriteTo.File("Logs/log.txt", rollingInterval: RollingInterval.Day)
                                 .CreateLogger();
 
             builder.Host.UseSerilog();

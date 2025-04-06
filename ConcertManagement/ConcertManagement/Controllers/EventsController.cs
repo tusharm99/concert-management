@@ -70,7 +70,7 @@ namespace ConcertManagement.Api.Controllers
             var existingEvent = await _concertService.GetEvent(id);
             if (existingEvent == null)
             {
-                _logger.LogWarning("Event not found with ID {EventId} not found", id);
+                _logger.LogWarning("Event not found with ID {EventId}", id);
                 return NotFound();
             }
 
