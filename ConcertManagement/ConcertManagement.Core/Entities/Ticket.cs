@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace ConcertManagement.Core.Entities;
 
-public partial class Ticket : EntityBase
+public partial class Ticket
 {
     [Key]
     public int Id { get; set; }
@@ -15,6 +12,12 @@ public partial class Ticket : EntityBase
 
     [Column(TypeName = "datetime")]
     public DateTime? PurchaseDate { get; set; }
+
+    [StringLength(100)]
+    public string TicketCode { get; set; } = null!;
+
+    [StringLength(20)]
+    public string? SeatNo { get; set; }
 
     [StringLength(100)]
     public string CreatedBy { get; set; } = null!;

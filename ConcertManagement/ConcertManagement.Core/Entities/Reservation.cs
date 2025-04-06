@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace ConcertManagement.Core.Entities;
 
-public partial class Reservation : EntityBase
+public partial class Reservation
 {
     [Key]
     public int Id { get; set; }
@@ -18,6 +15,15 @@ public partial class Reservation : EntityBase
     public int Quantity { get; set; }
 
     public bool IsConfirmed { get; set; }
+
+    [StringLength(100)]
+    public string ContactName { get; set; } = null!;
+
+    [StringLength(50)]
+    public string ContactPhone { get; set; } = null!;
+
+    [StringLength(50)]
+    public string? ContactEmail { get; set; }
 
     [StringLength(100)]
     public string CreatedBy { get; set; } = null!;
@@ -32,6 +38,8 @@ public partial class Reservation : EntityBase
     public DateTime UpdatedDate { get; set; }
 
     public bool IsActive { get; set; }
+
+    public byte[] RowVersion { get; set; } = null!;
 
     [ForeignKey("EventId")]
     [InverseProperty("Reservations")]
