@@ -110,7 +110,7 @@ namespace ConcertManagement.Tests
         }
 
         [Fact]
-        public async Task UpdateEvent_ReturnsNotFound_WhenEventDoesNotExist()
+        public async Task UpdateEvent_EventNotFound()
         {
             var inputEvent = new EventDto { Id = 1, Name = "Updated", VenueId = 10 };
             _mockService.Setup(s => s.GetEvent(inputEvent.Id)).ReturnsAsync((Event)null);
