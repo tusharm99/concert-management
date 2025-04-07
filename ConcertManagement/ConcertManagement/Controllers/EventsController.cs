@@ -80,7 +80,7 @@ namespace ConcertManagement.Api.Controllers
             return NoContent();
         }
 
-        [HttpGet("with-ticket-types/{id}", Name = "GetEventWithTicketTypes")]
+        [HttpGet("{id}/ticket-types", Name = "GetEventWithTicketTypes")]
         [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetEventWithTicketTypes(int id)
@@ -90,6 +90,7 @@ namespace ConcertManagement.Api.Controllers
             return result != null ? Ok(result) : NotFound();
         }
 
+        [HttpPost("{id}/ticket-types", Name = "AddTicketType")]
         public async Task<IActionResult> AddTicketType(int eventId, [FromBody] TicketTypeDto item)
         {
             if (item == null || !ModelState.IsValid)

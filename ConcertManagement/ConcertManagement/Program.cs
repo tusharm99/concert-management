@@ -39,6 +39,10 @@ namespace ConcertManagement.Api
             builder.Services.AddScoped<IVenuesRepository, VenuesRepository>();
             builder.Services.AddScoped<IEventsRepository, EventsRepository>();
             builder.Services.AddScoped<IReservationsRepository, ReservationsRepository>();
+            builder.Services.AddScoped<ITicketTypesRepository, TicketTypesRepository>();
+            builder.Services.AddScoped<ITicketsRepository, TicketsRepository>();
+            builder.Services.AddScoped<IPaymentsRepository, PaymentsRepository>();
+
             builder.Services.AddScoped<IConcertService, ConcertService>();
 
             builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
