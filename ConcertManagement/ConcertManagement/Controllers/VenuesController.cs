@@ -25,13 +25,13 @@ namespace ConcertManagement.Api.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id}", Name = "GetVenueById")]
+        [HttpGet("{venueId}", Name = "GetVenueById")]
         [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetVenueById(int id)
+        public async Task<IActionResult> GetVenueById(int venueId)
         {
-            _logger.LogInformation("Fetching venues for venueId {id}", id);
-            var result = await _concertService.GetVenue(id);
+            _logger.LogInformation("Fetching venues for venueId {id}", venueId);
+            var result = await _concertService.GetVenue(venueId);
             return result != null ? Ok(result) : NotFound();
         }
 
@@ -52,28 +52,28 @@ namespace ConcertManagement.Api.Controllers
             return CreatedAtAction(nameof(GetVenueById), new { id = createdEvent.Id }, createdEvent);
         }
 
-        [HttpPut("{id}", Name = "UpdateVenue")]
+        [HttpPut("{venueId}", Name = "UpdateVenue")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateVenue(int id, [FromBody] VenueDto item)
+        public async Task<IActionResult> UpdateVenue(int venueId, [FromBody] VenueDto item)
         {
-            if (item == null || id != item.Id || !ModelState.IsValid)
+            if (item == null || venueId != item.Id || !ModelState.IsValid)
             {
                 _logger.LogWarning("Invalid venue data");
                 return BadRequest(ModelState);
             }
 
-            var existingEvent = await _concertService.GetVenue(id);
+            var existingEvent = await _concertService.GetVenue(venueId);
             if (existingEvent == null)
             {
-                _logger.LogWarning("Venue not found with ID {VenueId}", id);
+                _logger.LogWarning("Venue not found with ID {VenueId}", venueId);
                 return NotFound();
             }
 
             await _concertService.UpdateVenue(item);
 
-            _logger.LogInformation("Venue updated with ID {VenueId}", id);
+            _logger.LogInformation("Venue updated with ID {VenueId}", venueId);
             return NoContent();
         }
     }

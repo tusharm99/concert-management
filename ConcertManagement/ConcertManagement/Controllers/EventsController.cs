@@ -17,13 +17,13 @@ namespace ConcertManagement.Api.Controllers
             _concertService = concertService;
         }
 
-        [HttpGet("{id}", Name = "GetEventById")]
+        [HttpGet("{eventId}", Name = "GetEventById")]
         [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetEventById(int id)
+        public async Task<IActionResult> GetEventById(int eventId)
         {
-            _logger.LogInformation("Fetching events for eventId {id}", id);
-            var result = await _concertService.GetEvent(id);
+            _logger.LogInformation("Fetching events for eventId {id}", eventId);
+            var result = await _concertService.GetEvent(eventId);
             return result != null ? Ok(result) : NotFound();
         }
 
@@ -55,42 +55,45 @@ namespace ConcertManagement.Api.Controllers
             return CreatedAtAction(nameof(GetEventById), new { id = createdEvent.Id }, createdEvent);
         }
 
-        [HttpPut("{id}", Name = "UpdateEvent")]
+        [HttpPut("{eventId}", Name = "UpdateEvent")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateEvent(int id, [FromBody] EventDto item)
+        public async Task<IActionResult> UpdateEvent(int eventId, [FromBody] EventDto item)
         {
-            if (item == null || id != item.Id || !ModelState.IsValid)
+            if (item == null || eventId != item.Id || !ModelState.IsValid)
             {
                 _logger.LogWarning("Invalid Event data");
                 return BadRequest(ModelState);
             }
 
-            var existingEvent = await _concertService.GetEvent(id);
+            var existingEvent = await _concertService.GetEvent(eventId);
             if (existingEvent == null)
             {
-                _logger.LogWarning("Event not found with ID {EventId}", id);
+                _logger.LogWarning("Event not found with ID {EventId}", eventId);
                 return NotFound();
             }
 
             await _concertService.UpdateEvent(item);
 
-            _logger.LogInformation("Event updated with ID {EventId}", id);
+            _logger.LogInformation("Event updated with ID {EventId}", eventId);
             return NoContent();
         }
 
-        [HttpGet("{id}/ticket-types", Name = "GetEventWithTicketTypes")]
+        [HttpGet("{eventId}/ticket-types", Name = "GetEventWithTicketTypes")]
         [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetEventWithTicketTypes(int id)
+        public async Task<IActionResult> GetEventWithTicketTypes(int eventId)
         {
-            _logger.LogInformation("Fetching events for eventId {id} with Ticket Types", id);
-            var result = await _concertService.GetEvent(id, includeTicketTypes: true);
+            _logger.LogInformation("Fetching events for eventId {id} with Ticket Types", eventId);
+            var result = await _concertService.GetEvent(eventId, includeTicketTypes: true);
             return result != null ? Ok(result) : NotFound();
         }
 
-        [HttpPost("{id}/ticket-types", Name = "AddTicketType")]
+        [HttpPost("{eventId}/ticket-types", Name = "AddTicketType")]
+        [ProducesResponseType(typeof(TicketTypeDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddTicketType(int eventId, [FromBody] TicketTypeDto item)
         {
             if (item == null || !ModelState.IsValid)
