@@ -3,11 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ConcertManagement.Core.Entities;
 
-public partial class TicketType
+public partial class TicketType : EntityBase
 {
-    [Key]
-    public int Id { get; set; }
-
     public int EventId { get; set; }
 
     [StringLength(100)]

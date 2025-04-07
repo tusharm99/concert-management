@@ -5,11 +5,8 @@ using Microsoft.EntityFrameworkCore;
 namespace ConcertManagement.Core.Entities;
 
 [Index("ReservationCode", Name = "UQ_Reservations_ReservationCode", IsUnique = true)]
-public partial class Reservation
+public partial class Reservation : EntityBase
 {
-    [Key]
-    public int Id { get; set; }
-
     public int EventId { get; set; }
 
     public int TicketTypeId { get; set; }
