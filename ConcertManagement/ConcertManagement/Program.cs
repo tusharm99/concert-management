@@ -25,6 +25,8 @@ namespace ConcertManagement.Api
 
             ConfigureLogging(builder);
 
+            ConfigureHttpClient(builder);
+
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
                 {
@@ -44,6 +46,7 @@ namespace ConcertManagement.Api
             builder.Services.AddScoped<IPaymentsRepository, PaymentsRepository>();
 
             builder.Services.AddScoped<IConcertService, ConcertService>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
 
             builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
@@ -52,6 +55,15 @@ namespace ConcertManagement.Api
             ConfigureMiddleware(app);
 
             app.Run();
+        }
+
+        private static void ConfigureHttpClient(WebApplicationBuilder builder)
+        {
+            builder.Services.AddHttpClient("PaymentService", client =>
+            {
+                client.BaseAddress = new Uri("https://api.examplepayment.com/");
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+            });
         }
 
         private static void ConfigureMiddleware(WebApplication app)

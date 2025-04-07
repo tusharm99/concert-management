@@ -2,6 +2,7 @@
 using ConcertManagement.Core.Dtos;
 using ConcertManagement.Core.Entities;
 using ConcertManagement.Data.Repositories;
+using ConcertManagement.Infrastructure;
 using Microsoft.Extensions.Logging;
 
 namespace ConcertManagement.Service
@@ -9,29 +10,29 @@ namespace ConcertManagement.Service
     public class ConcertService : IConcertService
     {
         private readonly IEventsRepository _eventsRepository;
-        private readonly IReservationsRepository _reservationRepository;
+        private readonly IReservationsRepository _reservationsRepository;
         private readonly IVenuesRepository _venuesRepository;
         private readonly ITicketTypesRepository _ticketTypesRepository;
         private readonly ITicketsRepository _ticketsRepository;
-        private readonly IPaymentsRepository _paymentsRepository;
+        private readonly IPaymentService _paymentService;
         private readonly IMapper _mapper;
         private readonly ILogger<ConcertService> _logger;
 
-        public ConcertService(IVenuesRepository venuesRepository, 
+        public ConcertService(IVenuesRepository venuesRepository,
                               IEventsRepository eventsRepository,
                               ITicketTypesRepository ticketTypesRepository,
-                              IReservationsRepository reservationRepository,
+                              IReservationsRepository reservationsRepository,
                               ITicketsRepository ticketsRepository,
-                              IPaymentsRepository paymentsRepository,
+                              IPaymentService paymentService,
                               IMapper mapper,
                               ILogger<ConcertService> logger)
         {
             _eventsRepository = eventsRepository;
-            _reservationRepository = reservationRepository;
+            _reservationsRepository = reservationsRepository;
             _venuesRepository = venuesRepository;
             _ticketTypesRepository = ticketTypesRepository;
-            _paymentsRepository = paymentsRepository;
             _ticketsRepository = ticketsRepository;
+            _paymentService = paymentService;
             _mapper = mapper;
             _logger = logger;
         }
@@ -63,10 +64,9 @@ namespace ConcertManagement.Service
 
         public async Task<Event> CreateEvent(EventDto item)
         {
-            Event eventObj = null;
             try
             {
-                eventObj = _mapper.Map<Event>(item);
+                Event eventObj = _mapper.Map<Event>(item);
                 return await _eventsRepository.AddAsync(eventObj).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -163,6 +163,123 @@ namespace ConcertManagement.Service
                 throw;
             }
         }
+        #endregion
+
+        #region Reservation
+
+        public async Task<Reservation> GetReservation(int id, bool includeTickets = false)
+        {
+            if (includeTickets)
+            {
+                return await _reservationsRepository
+                    .GetByIdAsync(id, e => e.Tickets)
+                    .ConfigureAwait(false);
+            }
+
+            return await _reservationsRepository
+                .GetByIdAsync(id)
+                .ConfigureAwait(false);
+        }
+
+
+        /// <summary>
+        /// Creates reservation for an event which defines the time window
+        /// also purchase tickets for the event via payment service
+        /// and reserve the tickets for the event once payment is approved 
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public async Task<Reservation> CreateReservation(ReservationRequest item)
+        {
+            try
+            {
+                Reservation reservationObj = _mapper.Map<Reservation>(item);
+                reservationObj.ReservationCode = EventUtil.GenerateCode("RES", 5);
+
+                // get event details to fetch event date
+                var eventObj = await _eventsRepository.GetByIdAsync(item.EventId, e => e.TicketTypes).ConfigureAwait(false);
+                if (eventObj == null)
+                {
+                    _logger.LogError($"Event not found for ID: {item.EventId}");
+                    throw new Exception("Event not found.");
+                }
+
+                if (item.PurchaseDate < eventObj.StartDate || item.PurchaseDate > eventObj.EndDate)
+                {
+                    // purchase date is not within the event window
+                    _logger.LogError($"Purchase date is not within the event window for Event ID: {item.EventId} and ReservationCode: {reservationObj.ReservationCode}");
+                    throw new Exception("Purchase date is not within the event window");
+                }
+
+                // get ticket type details to fetch quantity and price
+                var ticketTypeObj = await _ticketTypesRepository.GetByIdAsync(item.TicketTypeId).ConfigureAwait(false);
+                if (ticketTypeObj == null)
+                {
+                    _logger.LogError($"Ticket Type not found for ID: {item.TicketTypeId}");
+                    throw new Exception("Ticket Type not found.");
+                }
+
+                // check if total seats for this event and ticket type are within the quantity requested for this reservation
+                if (ticketTypeObj.TotalSeats < item.Quantity)
+                {
+                    _logger.LogError($"Requested seats exceed the total availability for this ticket type. Type ID: {item.TicketTypeId}");
+                    throw new Exception("Requested seats exceed the total availability for this ticket type.");
+                }
+
+                // fetch total quantity of confirmed reservations for this event and ticket type
+                var totalConfirmedReservations = await _reservationsRepository
+                    .FindAsync(r => r.Event.Id == eventObj.Id && r.TicketType.Id == ticketTypeObj.Id && r.IsConfirmed)
+                    .ConfigureAwait(false);                
+
+                // check if total seats of confirmed reservations for this event and ticket type are within the quantity requested for this reservation
+                var reservedSeats = totalConfirmedReservations.Sum(r => r.Quantity);
+                if (ticketTypeObj.TotalSeats < item.Quantity + reservedSeats)
+                {
+                    _logger.LogError($"Seats are unavailable for this ticket type. Type ID: {item.TicketTypeId} | Exceeded Limit: {(item.Quantity + reservedSeats) - ticketTypeObj.TotalSeats}");
+                    throw new Exception("Seats are unavailable for this ticket type.");
+                }
+
+                var totalAmount = ticketTypeObj.Price * item.Quantity;
+
+                // make payment request
+                var paymentResponse = await _paymentService.ProcessPaymentAsync(new PaymentRequest(cardNumber: "1234567890123456",expiry: "06/28",cvc: "123", amount: totalAmount, currency: "USD", cardHolderName: "John Doe"));
+
+                if (!paymentResponse.IsSuccessful)
+                {
+                    reservationObj.IsConfirmed = false;
+                    _logger.LogError($"Payment failed: {paymentResponse.Message} | ReservationCode: {reservationObj.ReservationCode}");
+                }
+                else
+                {
+                    reservationObj.Payments.Add(new Payment
+                    {
+                        AmountPaid = totalAmount,
+                        PaymentDate = DateTime.UtcNow,
+                        PaymentMethod = paymentResponse.PaymentMethod,
+                        TransactionId = paymentResponse.TransactionId
+                    });
+
+                    for (int i = 0; i < item.Quantity; i++)
+                    {
+                        var ticket = new Ticket
+                        {
+                            PurchaseDate = item.PurchaseDate,
+                            TicketCode = EventUtil.GenerateCode("TXN", 5),
+                            Reservation = reservationObj
+                        };
+                        reservationObj.Tickets.Add(ticket);
+                    }
+                }
+
+                return await _reservationsRepository.AddAsync(reservationObj).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Reservation Error: {ex.Message}");
+                throw;
+            }
+        }
+
         #endregion
     }
 }

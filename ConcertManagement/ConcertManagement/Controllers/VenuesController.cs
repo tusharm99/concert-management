@@ -64,8 +64,8 @@ namespace ConcertManagement.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var existingEvent = await _concertService.GetVenue(venueId);
-            if (existingEvent == null)
+            var venueObj = await _concertService.GetVenue(venueId);
+            if (venueObj == null)
             {
                 _logger.LogWarning("Venue not found with ID {VenueId}", venueId);
                 return NotFound();

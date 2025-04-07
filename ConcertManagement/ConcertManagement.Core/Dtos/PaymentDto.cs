@@ -1,4 +1,6 @@
-﻿namespace ConcertManagement.Core.Dtos
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ConcertManagement.Core.Dtos
 {
     public class PaymentDto
     {
@@ -15,12 +17,6 @@
         public string TransactionId { get; set; } = null!;
 
         public decimal AmountPaid { get; set; }
-
-        public DateTime CreatedDate { get; set; }
-
-        public DateTime UpdatedDate { get; set; }
-
-        public bool IsActive { get; set; }
     }
 
 }

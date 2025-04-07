@@ -2,7 +2,7 @@
 
 namespace ConcertManagement.Core.Dtos
 {
-    public class ReservationDto
+    public class ReservationRequest
     {
         public int Id { get; set; }
 
@@ -27,8 +27,5 @@ namespace ConcertManagement.Core.Dtos
 
         public string? ContactEmail { get; set; }
         public DateTime PurchaseDate { get; set; }
-
-        public List<PaymentDto>? Payments { get; set; }
-        public List<TicketDto>? Tickets { get; set; }
     }
 }

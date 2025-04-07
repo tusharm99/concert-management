@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Linq.Expressions;
+using AutoMapper;
 using ConcertManagement.Core.Dtos;
 using ConcertManagement.Core.Entities;
 using ConcertManagement.Data.Repositories;
@@ -16,7 +17,7 @@ namespace ConcertManagement.Tests
         private readonly Mock<IReservationsRepository> _reservationsRepoMock = new();
         private readonly Mock<ITicketTypesRepository> _ticketTypesRepoMock = new();
         private readonly Mock<ITicketsRepository> _ticketsRepoMock = new();
-        private readonly Mock<IPaymentsRepository> _paymentsRepoMock = new();
+        private readonly Mock<IPaymentService> _paymentServiceRepoMock = new();
         private readonly Mock<IVenuesRepository> _venuesRepoMock = new();
         private readonly Mock<IMapper> _mapperMock = new();
         private readonly Mock<ILogger<ConcertService>> _loggerMock = new();
@@ -31,7 +32,7 @@ namespace ConcertManagement.Tests
                 _ticketTypesRepoMock.Object,
                 _reservationsRepoMock.Object,
                 _ticketsRepoMock.Object,
-                _paymentsRepoMock.Object,
+                _paymentServiceRepoMock.Object,
                 _mapperMock.Object,
                 _loggerMock.Object
             );
@@ -191,6 +192,59 @@ namespace ConcertManagement.Tests
             Func<Task> act = async () => await _sut.UpdateVenue(dto);
 
             await act.Should().ThrowAsync<Exception>().WithMessage("Map failed");
+        }
+
+        [Fact]
+        public async Task CreateReservation_ValidRequest()
+        {
+            var reservationRequest = new ReservationRequest
+            {
+                EventId = 1,
+                TicketTypeId = 1,
+                Quantity = 2,
+                PurchaseDate = DateTime.UtcNow
+            };
+
+            var eventObj = new Event
+            {
+                Id = 1,
+                StartDate = DateTime.UtcNow.AddDays(-1),
+                EndDate = DateTime.UtcNow.AddDays(1),
+                TicketTypes = new List<TicketType> { new TicketType { Id = 1, TotalSeats = 10, Price = 50 } }
+            };
+
+            var ticketTypeObj = new TicketType
+            {
+                Id = 1,
+                TotalSeats = 10,
+                Price = 50
+            };
+
+            var paymentResponse = new PaymentResponse(transactionId: Guid.NewGuid().ToString(),
+                                                      paymentStatus: "Success",
+                                                      amountPaid: 250,
+                                                      currency: "USD",
+                                                      paymentMethod: "CC",
+                                                      paymentDate: DateTime.UtcNow,
+                                                      isSuccessful: true,
+                                                      message: "Payment successful");
+
+            _eventsRepoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<Expression<Func<Event, object>>>())).ReturnsAsync(eventObj);
+            _ticketTypesRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticketTypeObj);
+            _paymentServiceRepoMock.Setup(r => r.ProcessPaymentAsync(It.IsAny<PaymentRequest>())).ReturnsAsync(paymentResponse);
+            _mapperMock.Setup(m => m.Map<Reservation>(It.IsAny<ReservationRequest>())).Returns(new Reservation());
+            _reservationsRepoMock.Setup(r => r.AddAsync(It.IsAny<Reservation>())).ReturnsAsync(new Reservation
+            {
+                ReservationCode = "RES123",
+                IsConfirmed = true
+            });
+
+            var result = await _sut.CreateReservation(reservationRequest);
+
+            result.Should().NotBeNull();
+            result.ReservationCode.Should().NotBeNullOrEmpty();
+            result.IsConfirmed.Should().BeTrue();
+            _reservationsRepoMock.Verify(r => r.AddAsync(It.IsAny<Reservation>()), Times.Once);
         }
     }
 }

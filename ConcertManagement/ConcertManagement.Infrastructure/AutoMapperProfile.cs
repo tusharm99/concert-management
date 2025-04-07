@@ -57,8 +57,8 @@ namespace ConcertManagement.Infrastructure
                 if (string.IsNullOrWhiteSpace(d.UpdatedBy)) d.UpdatedBy = "admin"; // assumption for now
             });
 
-            // ReservationDto -> Reservation
-            CreateMap<ReservationDto, Reservation>()
+            // ReservationRequest -> Reservation
+            CreateMap<ReservationRequest, Reservation>()
             .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
@@ -71,6 +71,11 @@ namespace ConcertManagement.Infrastructure
                 if (string.IsNullOrWhiteSpace(d.CreatedBy)) d.CreatedBy = "admin"; // assumption for now
                 if (string.IsNullOrWhiteSpace(d.UpdatedBy)) d.UpdatedBy = "admin"; // assumption for now
             });
+
+            // Reservation -> ReservationDto
+            CreateMap<Reservation, ReservationDto>()
+             .ForMember(dest => dest.Tickets, opt => opt.MapFrom(src => src.Tickets))
+             .ForMember(dest => dest.Payments, opt => opt.MapFrom(src => src.Payments));
 
             // TicketDto -> Ticket
             CreateMap<TicketDto, Ticket>()

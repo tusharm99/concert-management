@@ -29,6 +29,9 @@ public partial class Venue
     public int Capacity { get; set; }
 
     [StringLength(100)]
+    public string TimeZone { get; set; } = null!;
+
+    [StringLength(100)]
     public string AdminName { get; set; } = null!;
 
     [StringLength(50)]

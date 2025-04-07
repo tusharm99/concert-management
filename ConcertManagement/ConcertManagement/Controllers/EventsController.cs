@@ -49,10 +49,10 @@ namespace ConcertManagement.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var createdEvent = await _concertService.CreateEvent(item);
+            var eventObj = await _concertService.CreateEvent(item);
 
-            _logger.LogInformation("Event created with ID: {EventId}", createdEvent.Id);
-            return CreatedAtAction(nameof(GetEventById), new { id = createdEvent.Id }, createdEvent);
+            _logger.LogInformation("Event created with ID: {EventId}", eventObj.Id);
+            return CreatedAtAction(nameof(GetEventById), new { id = eventObj.Id }, eventObj);
         }
 
         [HttpPut("{eventId}", Name = "UpdateEvent")]
