@@ -1,0 +1,146 @@
+IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Payments')
+begin
+	drop table Payments;
+end
+GO
+
+IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Tickets')
+begin
+	drop table Tickets;
+end
+GO
+
+IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Reservations')
+begin
+drop table Reservations;
+end
+GO
+
+IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'TicketTypes')
+begin
+	drop table TicketTypes;
+end
+GO
+
+IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Events')
+begin
+drop table [Events];
+end
+GO
+
+IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Venues')
+begin
+	drop table Venues;
+end
+GO
+
+
+CREATE TABLE Venues (
+    Id INT PRIMARY KEY IDENTITY,
+    [Name] NVARCHAR(100) NOT NULL,
+	Address1 NVARCHAR(100) NOT NULL,
+	Address2 NVARCHAR(100) NULL,
+	City NVARCHAR(100) NOT NULL,
+	[State] NVARCHAR(5) NOT NULL,
+	Zip NVARCHAR(100) NOT NULL,
+    Capacity INT NOT NULL,
+	TimeZone NVARCHAR(100) NOT NULL,
+    AdminName NVARCHAR(100) NOT NULL,
+    AdminPhone NVARCHAR(50) NOT NULL,
+    AdminEmail NVARCHAR(50) NULL,
+	CreatedBy NVARCHAR(100) NOT NULL,
+	CreatedDate DATETIME NOT NULL,
+	UpdatedBy NVARCHAR(100) NOT NULL,
+	UpdatedDate DATETIME NOT NULL DEFAULT GETDATE(),
+	IsActive BIT NOT NULL DEFAULT 1
+);
+GO
+
+CREATE TABLE Events (
+    Id INT PRIMARY KEY IDENTITY,
+    VenueId INT NOT NULL,
+    [Name] NVARCHAR(100) NOT NULL,
+    [Description] NVARCHAR(500),
+    StartDate DATETIME NOT NULL,
+    EndDate DATETIME NOT NULL,
+    ContactName NVARCHAR(100) NOT NULL,
+    ContactPhone NVARCHAR(50) NOT NULL,
+    ContactEmail NVARCHAR(50) NULL,
+	CreatedBy NVARCHAR(100) NOT NULL,
+	CreatedDate DATETIME NOT NULL,
+	UpdatedBy NVARCHAR(100) NOT NULL,
+	UpdatedDate DATETIME NOT NULL DEFAULT GETDATE(),
+	IsActive BIT NOT NULL DEFAULT 1,
+    FOREIGN KEY (VenueId) REFERENCES Venues(Id)
+);
+GO
+
+CREATE TABLE TicketTypes (
+    Id INT PRIMARY KEY IDENTITY,
+    EventId INT NOT NULL,
+	[Name] NVARCHAR(100) NOT NULL,
+	[Description] NVARCHAR(100) NOT NULL,
+    TotalSeats INT NOT NULL, -- check aggregated sum of TotalSeats per Venue for an event do not exceed Venue capacity
+    Price DECIMAL(10, 2) NOT NULL,
+	CreatedBy NVARCHAR(100) NOT NULL,
+	CreatedDate DATETIME NOT NULL,
+	UpdatedBy NVARCHAR(100) NOT NULL,
+	UpdatedDate DATETIME NOT NULL DEFAULT GETDATE(),
+	IsActive BIT NOT NULL DEFAULT 1,
+    FOREIGN KEY (EventId) REFERENCES Events(Id)
+);
+GO
+
+CREATE TABLE Reservations (
+    Id INT PRIMARY KEY IDENTITY,
+    EventId INT NOT NULL,
+    TicketTypeId INT NOT NULL,
+	ReservationCode NVARCHAR(50) NOT NULL,
+    Quantity INT NOT NULL,
+	IsConfirmed BIT NOT NULL DEFAULT 0,
+    ContactName NVARCHAR(100) NOT NULL,
+    ContactPhone NVARCHAR(50) NOT NULL,
+    ContactEmail NVARCHAR(50) NULL,
+	CreatedBy NVARCHAR(100) NOT NULL,
+	CreatedDate DATETIME NOT NULL,
+	UpdatedBy NVARCHAR(100) NOT NULL,
+	UpdatedDate DATETIME NOT NULL DEFAULT GETDATE(),
+	IsActive BIT NOT NULL DEFAULT 1,
+	RowVersion ROWVERSION, -- to check for concurrency
+    CONSTRAINT UQ_Reservations_ReservationCode UNIQUE (ReservationCode),
+    FOREIGN KEY (EventId) REFERENCES Events(Id),
+    FOREIGN KEY (TicketTypeId) REFERENCES TicketTypes(Id)
+);
+GO
+
+CREATE TABLE Tickets (
+    Id INT PRIMARY KEY IDENTITY,
+    ReservationId INT NOT NULL,
+    PurchaseDate DATETIME DEFAULT GETDATE(),
+	TicketCode NVARCHAR(100) NOT NULL,
+	SeatNo NVARCHAR(20) NULL,
+	CreatedBy NVARCHAR(100) NOT NULL,
+	CreatedDate DATETIME NOT NULL,
+	UpdatedBy NVARCHAR(100) NOT NULL,
+	UpdatedDate DATETIME NOT NULL,
+	IsActive BIT NOT NULL DEFAULT 1,
+    FOREIGN KEY (ReservationId) REFERENCES Reservations(Id)
+);
+GO
+
+CREATE TABLE Payments (
+    Id INT PRIMARY KEY IDENTITY,
+    ReservationId INT NOT NULL,
+    PaymentMethod NVARCHAR(50) NOT NULL,
+    PaymentStatus NVARCHAR(50) NOT NULL,
+    PaymentDate DATETIME NOT NULL DEFAULT GETDATE(),
+    TransactionId NVARCHAR(100) NOT NULL,
+    AmountPaid DECIMAL(10, 2) NOT NULL,
+    CreatedBy NVARCHAR(100) NOT NULL,
+    CreatedDate DATETIME NOT NULL DEFAULT GETDATE(),
+    UpdatedBy NVARCHAR(100) NOT NULL,
+    UpdatedDate DATETIME NOT NULL DEFAULT GETDATE(),
+    IsActive BIT NOT NULL DEFAULT 1,
+    FOREIGN KEY (ReservationId) REFERENCES Reservations(Id)
+);
+GO

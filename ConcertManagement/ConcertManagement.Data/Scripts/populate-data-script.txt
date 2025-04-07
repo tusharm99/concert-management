@@ -1,0 +1,67 @@
+delete from Payments
+GO
+delete from Tickets
+GO
+delete from Reservations
+GO
+delete from TicketTypes;
+GO
+delete from Events;
+GO
+delete from Venues;
+GO
+
+INSERT INTO Venues ([Name], Address1, Address2, City, [State], Zip, Capacity, TimeZone, AdminName, AdminPhone, AdminEmail, CreatedBy, CreatedDate, UpdatedBy, UpdatedDate, IsActive)
+VALUES 
+('Seattle Grand Hall', '100 Main St', NULL, 'Seattle', 'WA', '98101', 5000, 'Pacific Standard Time', 'John Doe', '206-555-1234', 'john.doe@example.com', 'admin', GETDATE(), 'admin', GETDATE(), 1),
+('Bellevue Convention Center', '200 Center Blvd', 'Suite 300', 'Bellevue', 'WA', '98004', 3000, 'Mountain Standard Time', 'Mary Smith', '425-555-5678', 'mary.smith@example.com', 'admin', GETDATE(), 'admin', GETDATE(), 1),
+('Tacoma Dome', '300 Dome Rd', NULL, 'Tacoma', 'WA', '98402', 20000, 'Central Standard Time', 'Steve Brown', '253-555-8765', 'steve.brown@example.com', 'admin', GETDATE(), 'admin', GETDATE(), 1),
+('Everett Event Pavilion', '400 Broadway Ave', NULL, 'Everett', 'WA', '98201', 7500, 'Eastern Standard Time', 'Lisa Ray', '360-555-1357', 'lisa.ray@example.com', 'admin', GETDATE(), 'admin', GETDATE(), 1),
+('Redmond Tech Center', '500 Innovation Way', 'Bldg A', 'Redmond', 'WA', '98052', 1200, 'Pacific Standard Time', 'Alan White', '425-555-9090', 'alan.white@example.com', 'admin', GETDATE(), 'admin', GETDATE(), 1);
+Go
+
+INSERT INTO Events (VenueId, [Name], [Description], StartDate, EndDate, ContactName, ContactPhone, ContactEmail, CreatedBy, CreatedDate, UpdatedBy, UpdatedDate, IsActive)
+VALUES 
+((select Id from Venues where [Name] = 'Seattle Grand Hall'),			'Tech Expo 2025', 'A gathering of tech leaders and startups.', '2025-06-10 09:00:00', '2025-06-12 17:00:00', 'Karen Lee', '206-555-1122', 'karen.lee@techexpo.com', 'admin', GETDATE(), 'admin', GETDATE(), 1),
+((select Id from Venues where [Name] = 'Bellevue Convention Center'),	'AI & Robotics Summit', 'Exploring the future of artificial intelligence and robotics.', '2025-07-20 10:00:00', '2025-07-21 18:00:00', 'Mike Chen', '425-555-3344', 'mike.chen@aisummit.com', 'admin', GETDATE(), 'admin', GETDATE(), 1),
+((select Id from Venues where [Name] = 'Tacoma Dome'),					'Summer Music Festival', 'Live performances from local and international artists.', '2025-08-15 14:00:00', '2025-08-17 23:00:00', 'Sarah Jones', '253-555-7788', 'sarah.jones@musicfest.com', 'admin', GETDATE(), 'admin', GETDATE(), 1),
+((select Id from Venues where [Name] = 'Everett Event Pavilion'),		'Gaming Convention', 'All things gaming — esports, indie games, panels.', '2025-09-05 09:00:00', '2025-09-07 20:00:00', 'Tom Harris', '360-555-2244', 'tom.harris@gamecon.com', 'admin', GETDATE(), 'admin', GETDATE(), 1),
+((select Id from Venues where [Name] = 'Redmond Tech Center'),			'Cloud Dev Conference', 'Conference for cloud developers and architects.', '2025-10-01 09:00:00', '2025-10-02 17:00:00', 'Emma Wilson', '425-555-4455', 'emma.wilson@cloudconf.com', 'admin', GETDATE(), 'admin', GETDATE(), 1);
+
+INSERT INTO TicketTypes (EventId, [Name], [Description], TotalSeats, Price, CreatedBy, CreatedDate, UpdatedBy, UpdatedDate, IsActive)
+VALUES 
+((select Id from Events where [Name] = 'Tech Expo 2025'), 'General Admission', 'Access to all standard sessions.', 1000, 49.99, 'admin', GETDATE(), 'admin', GETDATE(), 1),
+((select Id from Events where [Name] = 'Tech Expo 2025'), 'VIP Pass', 'Front-row seating and exclusive access.', 100, 199.99, 'admin', GETDATE(), 'admin', GETDATE(), 1),
+((select Id from Events where [Name] = 'Tech Expo 2025'), 'Student Pass', 'Discounted pass for students with ID.', 300, 29.99, 'admin', GETDATE(), 'admin', GETDATE(), 1),
+((select Id from Events where [Name] = 'AI & Robotics Summit'), 'All Access', 'Includes all events, workshops, and parties.', 150, 299.99, 'admin', GETDATE(), 'admin', GETDATE(), 1),
+((select Id from Events where [Name] = 'AI & Robotics Summit'), 'Workshop Only', 'Access to technical workshops only.', 200, 79.99, 'admin', GETDATE(), 'admin', GETDATE(), 1);
+GO
+
+INSERT INTO Reservations (EventId, TicketTypeId, ReservationCode, Quantity, IsConfirmed, ContactName, ContactPhone, ContactEmail,CreatedBy, CreatedDate, UpdatedBy, UpdatedDate, IsActive)
+VALUES
+((select Id from Events where [Name] = 'Tech Expo 2025'), (select Id from TicketTypes where [Name] = 'General Admission'), 'RES-1001', 3, 1, 'Alice Johnson', '123-456-7890', 'alice@example.com', 'system', GETDATE(), 'system', GETDATE(), 1),
+((select Id from Events where [Name] = 'Tech Expo 2025'), (select Id from TicketTypes where [Name] = 'VIP Pass'),		   'RES-1002', 2, 0, 'Bob Smith', '987-654-3210', 'bob@example.com', 'system', GETDATE(), 'system', GETDATE(), 1),
+((select Id from Events where [Name] = 'Tech Expo 2025'), (select Id from TicketTypes where [Name] = 'Student Pass'),	   'RES-1003', 1, 1, 'Carol Davis', '555-123-4567', NULL, 'system', GETDATE(), 'system', GETDATE(), 1);
+GO
+
+INSERT INTO Tickets (ReservationId, PurchaseDate, TicketCode, SeatNo, CreatedBy, CreatedDate, UpdatedBy, UpdatedDate, IsActive)
+VALUES
+((select Id from Reservations where ReservationCode = 'RES-1001'), (select StartDate from Events where [Name] = 'Tech Expo 2025'), 'TCKT-1001-A', 'A1', 'system', GETDATE(), 'system', GETDATE(), 1),
+((select Id from Reservations where ReservationCode = 'RES-1001'), (select StartDate from Events where [Name] = 'Tech Expo 2025'), 'TCKT-1001-B', 'A2', 'system', GETDATE(), 'system', GETDATE(), 1),
+((select Id from Reservations where ReservationCode = 'RES-1001'), (select StartDate from Events where [Name] = 'Tech Expo 2025'), 'TCKT-1001-A', 'B1', 'system', GETDATE(), 'system', GETDATE(), 1),
+((select Id from Reservations where ReservationCode = 'RES-1003'), (select StartDate from Events where [Name] = 'Tech Expo 2025'), 'TCKT-1002-D', 'B4', 'system', GETDATE(), 'system', GETDATE(), 1);
+GO
+
+INSERT INTO Payments (ReservationId, PaymentMethod, PaymentStatus, PaymentDate, TransactionId, AmountPaid, CreatedBy, CreatedDate, UpdatedBy, UpdatedDate, IsActive)
+VALUES
+((select Id from Reservations where ReservationCode = 'RES-1001'), 'CreditCard', 'Completed', GETDATE(), 'TXN-001', 200.00, 'system', GETDATE(), 'system', GETDATE(), 1),
+((select Id from Reservations where ReservationCode = 'RES-1002'), 'PayPal',	  'Pending', GETDATE(), 'TXN-002', 400.00, 'system', GETDATE(), 'system', GETDATE(), 1),
+((select Id from Reservations where ReservationCode = 'RES-1003'), 'CreditCard', 'Completed', GETDATE(), 'TXN-003', 100.00, 'system', GETDATE(), 'system', GETDATE(), 1);
+GO
+
+select * from Venues
+select * from Events
+select * from TicketTypes
+select * from Reservations
+select * from Tickets
+select * from Payments
