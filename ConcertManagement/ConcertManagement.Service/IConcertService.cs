@@ -17,6 +17,7 @@ namespace ConcertManagement.Service
         Task<Venue> CreateVenue([FromBody] VenueDto item);
         Task UpdateVenue([FromBody] VenueDto item);
         Task<Reservation> GetReservation(int id, bool includeTickets = false);
-        Task<Reservation> CreateReservation(ReservationRequest item);
+        Task<ReservationDto> CreateReservation(ReservationRequest item);
+        Task<bool> CancelReservation(int reservationId);
     }
 }

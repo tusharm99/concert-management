@@ -28,7 +28,7 @@ namespace ConcertManagement.Api.Controllers
         }
 
         [HttpPost(Name = "ReserveTickets")]
-        [ProducesResponseType(typeof(EventDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ReservationDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> ReserveTickets([FromBody] ReservationRequest item)
         {
@@ -40,8 +40,29 @@ namespace ConcertManagement.Api.Controllers
 
             var reservation = await _concertService.CreateReservation(item);
 
-            _logger.LogInformation("Event created with ID: {ReservationId}", reservation.Id);
+            _logger.LogInformation("Reservation created with ID: {ReservationId}", reservation.Id);
             return CreatedAtAction(nameof(GetReservationById), new { id = reservation.Id }, reservation);
+        }
+
+        [HttpDelete(Name = "CancelReservation")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CancelReservation([FromBody] ReservationRequest item)
+        {
+            if (item == null || !ModelState.IsValid)
+            {
+                _logger.LogWarning($"Invalid reservation. ID: {item.Id} | ReservationCode {item.ReservationCode}");
+                return BadRequest(ModelState);
+            }
+
+            var reservation = await _concertService.GetReservation(item.Id);
+            if(reservation == null)
+            {
+                _logger.LogWarning("Reservation not found");
+                return NotFound();
+            }
+
+            return Ok(await _concertService.CancelReservation(item.Id));
         }
     }
 }

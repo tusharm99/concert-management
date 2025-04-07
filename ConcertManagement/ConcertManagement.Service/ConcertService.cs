@@ -189,7 +189,7 @@ namespace ConcertManagement.Service
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public async Task<Reservation> CreateReservation(ReservationRequest item)
+        public async Task<ReservationDto> CreateReservation(ReservationRequest item)
         {
             try
             {
@@ -271,13 +271,74 @@ namespace ConcertManagement.Service
                     }
                 }
 
-                return await _reservationsRepository.AddAsync(reservationObj).ConfigureAwait(false);
+                var reservation = await _reservationsRepository.AddAsync(reservationObj).ConfigureAwait(false);
+                ReservationDto reservationDto = _mapper.Map<ReservationDto>(reservation);
+                return reservationDto;
+
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Reservation Error: {ex.Message}");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Cancels a reservation if it is confirmed and within the event date range.
+        /// Refunds amount if payment was made and event is not over.
+        /// </summary>
+        /// <param name="reservationId"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<bool> CancelReservation(int reservationId)
+        {
+            var reservation = await GetReservation(reservationId).ConfigureAwait(false);
+            if (reservation == null)
+            {
+                _logger.LogError($"Reservation not found for ID: {reservationId}");
+                return false;
+            }
+
+            if (!reservation.IsConfirmed)
+            {
+                _logger.LogError($"Reservation was not confirmed. No payments made against this reservation ID: {reservationId} | ReservationCode: {reservation.ReservationCode}");
+                return false;
+            }
+
+            // get event details to fetch event date
+            var eventObj = await _eventsRepository.GetByIdAsync(reservation.EventId, e => e.TicketTypes).ConfigureAwait(false);
+            if (eventObj == null)
+            {
+                _logger.LogError($"Event not found for ID: {reservation.EventId}");
+                throw new Exception("Event not found.");
+            }
+
+            if (DateTime.UtcNow > eventObj.EndDate)
+            {
+                _logger.LogError($"Event is over. Reservation cannot be cancelled. ReservationCode: {reservation.ReservationCode}");
+                return false;
+            }
+
+            // refund payment
+            var paymentResponse = await _paymentService.RefundPaymentAsync(reservation.Payments.FirstOrDefault().TransactionId);
+            if (!paymentResponse.IsSuccessful)
+            {
+                _logger.LogError($"Refund failed: {paymentResponse.Message} | ReservationCode: {reservation.ReservationCode}");
+                return false;
+            }
+
+            // remove tickets
+            foreach (var ticket in reservation.Tickets)
+            {
+                await _ticketsRepository.RemoveAsync(ticket).ConfigureAwait(false);
+            }
+
+            reservation.IsActive = false;
+
+            // update reservation
+            await _reservationsRepository.UpdateAsync(reservation).ConfigureAwait(false);
+
+            return true;
         }
 
         #endregion

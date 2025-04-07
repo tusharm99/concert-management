@@ -233,6 +233,11 @@ namespace ConcertManagement.Tests
             _ticketTypesRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticketTypeObj);
             _paymentServiceRepoMock.Setup(r => r.ProcessPaymentAsync(It.IsAny<PaymentRequest>())).ReturnsAsync(paymentResponse);
             _mapperMock.Setup(m => m.Map<Reservation>(It.IsAny<ReservationRequest>())).Returns(new Reservation());
+            _mapperMock.Setup(m => m.Map<ReservationDto>(It.IsAny<Reservation>())).Returns(new ReservationDto
+            {
+                ReservationCode = "RES123",
+                IsConfirmed = true
+            });
             _reservationsRepoMock.Setup(r => r.AddAsync(It.IsAny<Reservation>())).ReturnsAsync(new Reservation
             {
                 ReservationCode = "RES123",
@@ -245,6 +250,45 @@ namespace ConcertManagement.Tests
             result.ReservationCode.Should().NotBeNullOrEmpty();
             result.IsConfirmed.Should().BeTrue();
             _reservationsRepoMock.Verify(r => r.AddAsync(It.IsAny<Reservation>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CancelReservation_ReturnTrue_WhenSuccessful()
+        {
+            var reservationId = 1;
+            var reservation = new Reservation
+            {
+                Id = reservationId,
+                IsConfirmed = true,
+                ReservationCode = "RES123",
+                EventId = 2,
+                Payments = new List<Payment>{ new Payment { TransactionId = "TXN123" } },
+                Tickets = new List<Ticket> { new Ticket() }
+            };
+            var eventObj = new Event
+            {
+                Id = 2,
+                EndDate = DateTime.UtcNow.AddDays(1)
+            };
+
+            var paymentResponse = new PaymentResponse(transactionId: Guid.NewGuid().ToString(),
+                                                      paymentStatus: "Success",
+                                                      amountPaid: 250,
+                                                      currency: "USD",
+                                                      paymentMethod: "CC",
+                                                      paymentDate: DateTime.UtcNow,
+                                                      isSuccessful: true,
+                                                      message: "Payment successful");
+
+            _reservationsRepoMock.Setup(r => r.GetByIdAsync(reservationId)).ReturnsAsync(reservation);
+            _eventsRepoMock.Setup(e => e.GetByIdAsync(reservation.EventId, It.IsAny<Expression<Func<Event, object>>[]>())).ReturnsAsync(eventObj);
+            _paymentServiceRepoMock.Setup(p => p.RefundPaymentAsync(It.IsAny<string>())).ReturnsAsync(paymentResponse);
+            _ticketsRepoMock.Setup(t => t.RemoveAsync(It.IsAny<Ticket>())).Returns(Task.CompletedTask);
+            _reservationsRepoMock.Setup(r => r.UpdateAsync(It.IsAny<Reservation>())).Returns(Task.CompletedTask);
+
+            var result = await _sut.CancelReservation(reservationId);
+
+            Assert.True(result);
         }
     }
 }
