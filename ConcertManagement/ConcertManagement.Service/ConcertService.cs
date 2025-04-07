@@ -229,7 +229,7 @@ namespace ConcertManagement.Service
                 // fetch total quantity of confirmed reservations for this event and ticket type
                 var totalConfirmedReservations = await _reservationsRepository
                     .FindAsync(r => r.Event.Id == eventObj.Id && r.TicketType.Id == ticketTypeObj.Id && r.IsConfirmed)
-                    .ConfigureAwait(false);                
+                    .ConfigureAwait(false);
 
                 // check if total seats of confirmed reservations for this event and ticket type are within the quantity requested for this reservation
                 var reservedSeats = totalConfirmedReservations.Sum(r => r.Quantity);
@@ -242,7 +242,7 @@ namespace ConcertManagement.Service
                 var totalAmount = ticketTypeObj.Price * item.Quantity;
 
                 // make payment request
-                var paymentResponse = await _paymentService.ProcessPaymentAsync(new PaymentRequest(cardNumber: "1234567890123456",expiry: "06/28",cvc: "123", amount: totalAmount, currency: "USD", cardHolderName: "John Doe"));
+                var paymentResponse = await _paymentService.ProcessPaymentAsync(new PaymentRequest(cardNumber: "1234567890123456", expiry: "06/28", cvc: "123", amount: totalAmount, currency: "USD", cardHolderName: "John Doe"));
 
                 if (!paymentResponse.IsSuccessful)
                 {
@@ -339,6 +339,51 @@ namespace ConcertManagement.Service
             await _reservationsRepository.UpdateAsync(reservation).ConfigureAwait(false);
 
             return true;
+        }
+
+        public async Task<List<EventSeatsAvailability>> GetEventSeatsAvailability(int eventId)
+        {
+            if(eventId <= 0)
+            {
+                _logger.LogError($"Invalid event ID: {eventId}");
+                throw new ArgumentException("Invalid event ID.");
+            }
+            var eventObj = _eventsRepository.GetByIdAsync(eventId, e => e.TicketTypes).Result;
+            if (eventObj == null)
+            {
+                _logger.LogError($"Event not found for ID: {eventId}");
+                throw new Exception("Event not found.");
+            }
+
+            if (DateTime.UtcNow > eventObj.EndDate)
+            {
+                _logger.LogError($"Event is closed for booking since it is in the past");
+                throw new Exception("Event is closed for booking");
+            }
+
+            var eventSeatsAvailabilityList = new List<EventSeatsAvailability>();
+            foreach (var ticketType in eventObj.TicketTypes)
+            {
+                // fetch total quantity of confirmed reservations for this event and ticket type
+                var totalConfirmedReservations = await _reservationsRepository
+                    .FindAsync(r => r.Event.Id == eventObj.Id && r.TicketType.Id == ticketType.Id && r.IsConfirmed)
+                    .ConfigureAwait(false);
+
+                // get total seats with confirmed reservations for this event and ticket type
+                var reservedSeats = totalConfirmedReservations.Sum(r => r.Quantity);
+                var availableSeats = ticketType.TotalSeats - reservedSeats;
+                eventSeatsAvailabilityList.Add(new EventSeatsAvailability
+                {
+                    EventId = eventId,
+                    EventName = eventObj.Name,
+                    TicketTypeId = ticketType.Id,
+                    TicketTypeName = ticketType.Name,
+                    MaxSeats = ticketType.TotalSeats,
+                    AvailableTickets = ticketType.TotalSeats - availableSeats
+                });
+            }
+
+            return eventSeatsAvailabilityList;
         }
 
         #endregion

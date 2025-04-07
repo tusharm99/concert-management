@@ -64,5 +64,16 @@ namespace ConcertManagement.Api.Controllers
 
             return Ok(await _concertService.CancelReservation(item.Id));
         }
+
+        [HttpGet("availability/{eventId}", Name = "CheckTicketAvailability")]
+        [ProducesResponseType(typeof(ReservationDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> CheckTicketAvailability(int eventId)
+        {
+            _logger.LogInformation("Check ticket availability for the event {id}", eventId);
+
+            var result = await _concertService.GetEventSeatsAvailability(eventId);
+            return result != null ? Ok(result) : NotFound();
+        }
     }
 }
