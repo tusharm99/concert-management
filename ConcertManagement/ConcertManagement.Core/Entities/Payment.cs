@@ -1,26 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace ConcertManagement.Core.Entities;
 
-public partial class Ticket
+public partial class Payment
 {
     [Key]
     public int Id { get; set; }
 
     public int ReservationId { get; set; }
 
+    [StringLength(50)]
+    public string PaymentMethod { get; set; } = null!;
+
+    [StringLength(50)]
+    public string PaymentStatus { get; set; } = null!;
+
     [Column(TypeName = "datetime")]
-    public DateTime? PurchaseDate { get; set; }
+    public DateTime PaymentDate { get; set; }
 
     [StringLength(100)]
-    public string TicketCode { get; set; } = null!;
+    public string TransactionId { get; set; } = null!;
 
-    [StringLength(20)]
-    public string? SeatNo { get; set; }
+    [Column(TypeName = "decimal(10, 2)")]
+    public decimal AmountPaid { get; set; }
 
     [StringLength(100)]
     public string CreatedBy { get; set; } = null!;
@@ -37,6 +40,6 @@ public partial class Ticket
     public bool IsActive { get; set; }
 
     [ForeignKey("ReservationId")]
-    [InverseProperty("Tickets")]
+    [InverseProperty("Payments")]
     public virtual Reservation Reservation { get; set; } = null!;
 }
