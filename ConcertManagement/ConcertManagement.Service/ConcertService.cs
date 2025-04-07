@@ -11,18 +11,27 @@ namespace ConcertManagement.Service
         private readonly IEventsRepository _eventsRepository;
         private readonly IReservationsRepository _reservationRepository;
         private readonly IVenuesRepository _venuesRepository;
+        private readonly ITicketTypesRepository _ticketTypesRepository;
+        private readonly ITicketsRepository _ticketsRepository;
+        private readonly IPaymentsRepository _paymentsRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<ConcertService> _logger;
 
-        public ConcertService(IEventsRepository eventsRepository,
+        public ConcertService(IVenuesRepository venuesRepository, 
+                              IEventsRepository eventsRepository,
+                              ITicketTypesRepository ticketTypesRepository,
                               IReservationsRepository reservationRepository,
-                              IVenuesRepository venuesRepository,
+                              ITicketsRepository ticketsRepository,
+                              IPaymentsRepository paymentsRepository,
                               IMapper mapper,
                               ILogger<ConcertService> logger)
         {
             _eventsRepository = eventsRepository;
             _reservationRepository = reservationRepository;
             _venuesRepository = venuesRepository;
+            _ticketTypesRepository = ticketTypesRepository;
+            _paymentsRepository = paymentsRepository;
+            _ticketsRepository = ticketsRepository;
             _mapper = mapper;
             _logger = logger;
         }
@@ -140,9 +149,19 @@ namespace ConcertManagement.Service
             await _venuesRepository.UpdateAsync(existingVenue).ConfigureAwait(false);
         }
 
-        public Task AddEventTicketType(int eventId, TicketType item)
+        public async Task<TicketType> CreateTicketType(int eventId, TicketTypeDto item)
         {
-            throw new NotImplementedException();
+            TicketType ticketTypeObj = null;
+            try
+            {
+                ticketTypeObj = _mapper.Map<TicketType>(item);
+                return await _ticketTypesRepository.AddAsync(ticketTypeObj).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Automapper Error: {ex.Message}");
+                throw;
+            }
         }
         #endregion
     }

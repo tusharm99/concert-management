@@ -27,16 +27,6 @@ namespace ConcertManagement.Api.Controllers
             return result != null ? Ok(result) : NotFound();
         }
 
-        [HttpGet("with-ticket-types/{id}", Name = "GetEventWithTicketTypes")]
-        [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetEventWithTicketTypes(int id)
-        {
-            _logger.LogInformation("Fetching events for eventId {id} with Ticket Types", id);
-            var result = await _concertService.GetEvent(id, includeTicketTypes: true);
-            return result != null ? Ok(result) : NotFound();
-        }
-
 
         [HttpGet(Name = "GetEventsByVenue")]
         [ProducesResponseType(typeof(IEnumerable<EventDto>), StatusCodes.Status200OK)]
@@ -90,19 +80,28 @@ namespace ConcertManagement.Api.Controllers
             return NoContent();
         }
 
-        //public async Task<IActionResult> AddTicketType(int eventId, [FromBody] TicketTypeDto item)
-        //{
-        //    if (item == null || !ModelState.IsValid)
-        //    {
-        //        _logger.LogWarning("Invalid TicketType data");
-        //        return BadRequest(ModelState);
-        //    }
+        [HttpGet("with-ticket-types/{id}", Name = "GetEventWithTicketTypes")]
+        [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetEventWithTicketTypes(int id)
+        {
+            _logger.LogInformation("Fetching events for eventId {id} with Ticket Types", id);
+            var result = await _concertService.GetEvent(id, includeTicketTypes: true);
+            return result != null ? Ok(result) : NotFound();
+        }
 
-        //    var createdEvent = await _concertService.CreateEvent(item);
+        public async Task<IActionResult> AddTicketType(int eventId, [FromBody] TicketTypeDto item)
+        {
+            if (item == null || !ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid TicketType data");
+                return BadRequest(ModelState);
+            }
 
-        //    _logger.LogInformation("Event created with ID: {EventId}", createdEvent.Id);
-        //    return CreatedAtAction(nameof(GetEventById), new { id = createdEvent.Id }, createdEvent);
-        //}
+            var ticketType = await _concertService.CreateTicketType(eventId, item);
 
+            _logger.LogInformation("Ticket Type created with ID {TicketTypeId} for EventId {EventId}", ticketType.Id, eventId);
+            return CreatedAtAction(nameof(GetEventById), new { id = ticketType.Id }, ticketType);
+        }
     }
 }

@@ -14,6 +14,9 @@ namespace ConcertManagement.Tests
     {
         private readonly Mock<IEventsRepository> _eventsRepoMock = new();
         private readonly Mock<IReservationsRepository> _reservationsRepoMock = new();
+        private readonly Mock<ITicketTypesRepository> _ticketTypesRepoMock = new();
+        private readonly Mock<ITicketsRepository> _ticketsRepoMock = new();
+        private readonly Mock<IPaymentsRepository> _paymentsRepoMock = new();
         private readonly Mock<IVenuesRepository> _venuesRepoMock = new();
         private readonly Mock<IMapper> _mapperMock = new();
         private readonly Mock<ILogger<ConcertService>> _loggerMock = new();
@@ -23,9 +26,12 @@ namespace ConcertManagement.Tests
         public ConcertServiceTests()
         {
             _sut = new ConcertService(
-                _eventsRepoMock.Object,
-                _reservationsRepoMock.Object,
                 _venuesRepoMock.Object,
+                _eventsRepoMock.Object,
+                _ticketTypesRepoMock.Object,
+                _reservationsRepoMock.Object,
+                _ticketsRepoMock.Object,
+                _paymentsRepoMock.Object,
                 _mapperMock.Object,
                 _loggerMock.Object
             );
